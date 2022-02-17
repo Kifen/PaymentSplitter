@@ -43,7 +43,6 @@ contract PaymentSplitter {
     uint256 amount
   ) external payable {
     require(payees.length > 0, "PaymentSplitter: zero payees");
-
     uint256 ethValue = msg.value;
     if (ethValue > 0) {
       _checkAmount(amount, ethValue);
@@ -83,10 +82,12 @@ contract PaymentSplitter {
   ) internal {
     require(
       token.allowance(msg.sender, address(this)) >= amount,
-      "PaymentSplitter: zero allowance"
+      "PaymentSplitter: zero token allowance"
     );
 
     (uint256 fee, uint256 amountToShare) = _share(amount, payees.length);
+
+    token.transferFrom(msg.sender, address(this), fee);
     for (uint256 i = 0; i < payees.length; i++) {
       address payee = payees[i];
       token.transferFrom(msg.sender, payee, amountToShare);
@@ -140,7 +141,7 @@ contract PaymentSplitter {
     amountToShare = _split(amountAfterFee, payeesCount);
   }
 
-  function _fee(uint256 amount) internal returns (uint256) {
+  function _fee(uint256 amount) public returns (uint256) {
     return (amount * FEE) / 100e18;
   }
 
