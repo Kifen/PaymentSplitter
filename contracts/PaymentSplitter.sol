@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 contract PaymentSplitter {
   address public admin;
@@ -25,18 +25,16 @@ contract PaymentSplitter {
   );
   event WithdrawFees(address recipient, uint256 indexed ethAmount);
 
-  modifier checkAmount(uint256 amountToSend, uint256 availableAmount) {
-    require(
-      amountToSend >= availableAmount,
-      "PaymentSplitter: incorrect amount to send"
-    );
-    _;
-  }
-
   constructor() {
     admin = msg.sender;
   }
 
+  /**
+   * @notice sender sends ETH ERC20  token to be didtributed equally amount `payees`
+   * @param payees recipient addresses to distribute payments
+   * @param token ERC20 token to distribute
+   * @param amount amount of tokens or ETH to distribute
+   */
   function sendPayment(
     address[] memory payees,
     IERC20 token,
@@ -44,6 +42,7 @@ contract PaymentSplitter {
   ) external payable {
     require(payees.length > 0, "PaymentSplitter: zero payees");
     uint256 ethValue = msg.value;
+
     if (ethValue > 0) {
       _checkAmount(amount, ethValue);
       _sendEth(payees, ethValue);
@@ -53,6 +52,10 @@ contract PaymentSplitter {
     }
   }
 
+  /**
+   * @notice admin withdraws all fees from contract
+   * @param account recipient account to send fees to
+   */
   function withdrawFees(address account) external {
     require(msg.sender == admin, "PaymentSplitter: unauthorized");
 
@@ -61,6 +64,8 @@ contract PaymentSplitter {
 
     emit WithdrawFees(account, ethWithdrawn);
   }
+
+  // Internal helper functions
 
   function _sendEth(address[] memory payees, uint256 amount) internal {
     (uint256 fee, uint256 amountToShare) = _share(amount, payees.length);
@@ -72,8 +77,6 @@ contract PaymentSplitter {
 
     emit SendEth(msg.sender, payees, amountToShare, fee);
   }
-
-  // Internal helper functions
 
   function _sendTokens(
     address[] memory payees,
@@ -105,10 +108,9 @@ contract PaymentSplitter {
   function _checkAmount(uint256 amountToSend, uint256 availableAmount)
     internal
   {
-    require(
-      amountToSend >= availableAmount,
-      "PaymentSplitter: incorrect amount to send"
-    );
+    if (availableAmount < amountToSend) {
+      revert("PaymentSplitter: incorrect amount to send");
+    }
   }
 
   function _withdrawTokens(address account) internal {
@@ -141,7 +143,7 @@ contract PaymentSplitter {
     amountToShare = _split(amountAfterFee, payeesCount);
   }
 
-  function _fee(uint256 amount) public returns (uint256) {
+  function _fee(uint256 amount) internal returns (uint256) {
     return (amount * FEE) / 100e18;
   }
 
