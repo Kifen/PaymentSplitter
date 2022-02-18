@@ -16,12 +16,14 @@ contract PaymentSplitter {
     uint256 indexed amount,
     uint256 fee
   );
+
   event SendToken(
     address indexed from,
     address[] indexed to,
     uint256 indexed amount,
     uint256 fee
   );
+  
   event WithdrawFees(address recipient, uint256 indexed ethAmount);
 
   constructor() {
