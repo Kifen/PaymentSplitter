@@ -113,8 +113,10 @@ contract PaymentSplitter {
   }
 
   function _withdrawTokens(address account) internal {
-    for (uint256 i = 0; i < allTokens.length; i++) {
-      IERC20 token = allTokens[i];
+    IERC20[] memory  _allTokens = allTokens;
+
+    for (uint256 i = 0; i < _allTokens.length; i++) {
+      IERC20 token = _allTokens[i];
       uint256 tokenBalance = token.balanceOf(address(this));
 
       if (tokenBalance > 0) {
