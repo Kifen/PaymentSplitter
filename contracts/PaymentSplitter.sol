@@ -29,7 +29,7 @@ contract PaymentSplitter {
   }
 
   /**
-   * @notice sender sends ETH ERC20  token to be didtributed equally amount `payees`
+   * @notice sender sends ETH or ERC20  token to be didtributed equally amount `payees`
    * @param payees recipient addresses to distribute payments
    * @param token ERC20 token to distribute
    * @param amount amount of tokens or ETH to distribute
